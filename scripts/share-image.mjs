@@ -77,6 +77,6 @@ export function createShareSvg(input) {
     <text x="916" y="355" font-size="20" opacity=".65">周期天数</text>
     <text x="916" y="410" font-size="46" font-weight="800">${total} 天</text>
   </g>
-  <text x="600" y="610" text-anchor="middle" font-family="Plus Jakarta Sans, Microsoft YaHei, sans-serif" font-size="16" fill="#5F6B82">按真实自然日计算 · VPS Value</text>
+  <text x="600" y="610" text-anchor="middle" font-family="Plus Jakarta Sans, Microsoft YaHei, sans-serif" font-size="16" fill="#5F6B82">VPS Value</text>
 </svg>`;
 }
