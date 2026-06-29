@@ -1,0 +1,7 @@
+node_modules/
+.env
+data/
+storage/shares/*.svg
+!storage/shares/.gitkeep
+dist/
+.DS_Store

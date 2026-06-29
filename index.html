@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="按真实日历天数计算 VPS 剩余价值，支持每日汇率、手动汇率与账单文字智能解析。" />
+    <meta name="theme-color" content="#f6f7fb" />
+    <title>VPS Value — 服务器剩余价值计算器</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#calculator">跳到计算器</a>
+    <div class="page-shell">
+      <header class="site-header" aria-label="主导航">
+        <a class="brand" href="#top" aria-label="VPS Value 首页">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="3.5" width="16" height="7" rx="2" />
+              <rect x="4" y="13.5" width="16" height="7" rx="2" />
+              <path d="M8 7h.01M8 17h.01M12 7h4M12 17h4" />
+            </svg>
+          </span>
+          <span>VPS <strong>Value</strong></span>
+        </a>
+        <nav class="header-actions" aria-label="页面导航">
+          <button class="status-pill" id="rate-status" type="button" aria-label="刷新今日汇率">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>汇率准备中</span>
+          </button>
+        </nav>
+      </header>
+
+      <main id="top">
+        <section class="hero" aria-labelledby="page-title">
+          <div class="eyebrow">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M17 7H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7" /></svg>
+            按真实日历计价
+          </div>
+          <div class="hero-main">
+            <div class="hero-copy">
+              <h1 id="page-title">算清每一天，<br /><span>才知道它值多少。</span></h1>
+              <p>大小月、闰年、外币汇率都认真算。输入续费信息，即时得到今天的 VPS 剩余价值。</p>
+            </div>
+            <a class="hero-ai-entry" href="#smart-import">
+              <span class="hero-ai-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="m12 3 1.3 4.2a5 5 0 0 0 3.4 3.4L21 12l-4.3 1.4a5 5 0 0 0-3.4 3.4L12 21l-1.3-4.2a5 5 0 0 0-3.4-3.4L3 12l4.3-1.4a5 5 0 0 0 3.4-3.4L12 3Z" /></svg>
+              </span>
+              <span><small>少填五个框</small><strong>AI 智能录入</strong><em>粘贴账单，自动识别并填写</em></span>
+              <svg class="hero-ai-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
+            </a>
+          </div>
+        </section>
+
+        <section class="workspace" id="calculator" aria-label="VPS 价值计算器">
+          <form class="calculator-card" id="calculator-form" novalidate>
+            <div class="card-heading">
+              <div>
+                <span class="section-kicker">01 · 基础信息</span>
+                <h2>这台机器怎么续费？</h2>
+              </div>
+              <button class="text-button" id="reset-form" type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5" /></svg>
+                重置
+              </button>
+            </div>
+
+            <div class="form-grid">
+              <div class="field field-wide">
+                <label for="renewal-price">续约价格</label>
+                <div class="price-control">
+                  <span class="currency-symbol" id="currency-symbol" aria-hidden="true">¥</span>
+                  <input id="renewal-price" name="renewalPrice" type="number" min="0.01" step="0.01" inputmode="decimal" value="299" required />
+                  <select id="currency" name="currency" aria-label="价格币种">
+                    <option value="CNY">CNY</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="HKD">HKD</option>
+                    <option value="JPY">JPY</option>
+                  </select>
+                </div>
+                <p class="field-hint">填写一个完整账单周期的含税价格</p>
+              </div>
+
+              <div class="field">
+                <label for="billing-cycle">账单周期</label>
+                <div class="select-wrap">
+                  <select id="billing-cycle" name="cycle">
+                    <option value="monthly">每月</option>
+                    <option value="quarterly">每季度</option>
+                    <option value="semiannual">每半年</option>
+                    <option value="annual" selected>每年</option>
+                    <option value="biennial">每两年</option>
+                  </select>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m8 10 4 4 4-4" /></svg>
+                </div>
+              </div>
+
+              <div class="field">
+                <label id="registration-date-label" for="registration-date-year">注册日期 <span>选填</span></label>
+                <div class="date-entry" data-date-entry="registration-date" role="group" aria-labelledby="registration-date-label">
+                  <input id="registration-date" name="registrationDate" type="hidden" value="2026-05-05" />
+                  <input id="registration-date-year" class="date-part date-year" data-date-part="year" inputmode="numeric" maxlength="4" value="2026" aria-label="注册日期 年" />
+                  <span aria-hidden="true">/</span>
+                  <input class="date-part" data-date-part="month" inputmode="numeric" maxlength="2" value="05" aria-label="注册日期 月" />
+                  <span aria-hidden="true">/</span>
+                  <input class="date-part" data-date-part="day" inputmode="numeric" maxlength="2" value="05" aria-label="注册日期 日" />
+                  <button class="date-picker-button" type="button" data-open-date="registration-date" aria-label="打开注册日期日历"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></svg></button>
+                  <input class="date-picker-proxy" data-picker-for="registration-date" type="date" value="2026-05-05" tabindex="-1" aria-hidden="true" />
+                </div>
+              </div>
+
+              <div class="field">
+                <label id="next-payment-label" for="next-payment-year">下次付款日期</label>
+                <div class="date-entry" data-date-entry="next-payment" role="group" aria-labelledby="next-payment-label">
+                  <input id="next-payment" name="nextPayment" type="hidden" value="2027-05-05" />
+                  <input id="next-payment-year" class="date-part date-year" data-date-part="year" inputmode="numeric" maxlength="4" value="2027" aria-label="下次付款日期 年" />
+                  <span aria-hidden="true">/</span>
+                  <input class="date-part" data-date-part="month" inputmode="numeric" maxlength="2" value="05" aria-label="下次付款日期 月" />
+                  <span aria-hidden="true">/</span>
+                  <input class="date-part" data-date-part="day" inputmode="numeric" maxlength="2" value="05" aria-label="下次付款日期 日" />
+                  <button class="date-picker-button" type="button" data-open-date="next-payment" aria-label="打开下次付款日期日历"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></svg></button>
+                  <input class="date-picker-proxy" data-picker-for="next-payment" type="date" value="2027-05-05" tabindex="-1" aria-hidden="true" />
+                </div>
+              </div>
+
+              <div class="field">
+                <label id="valuation-date-label" for="valuation-date-year">估值日期</label>
+                <div class="date-entry" data-date-entry="valuation-date" role="group" aria-labelledby="valuation-date-label">
+                  <input id="valuation-date" name="valuationDate" type="hidden" />
+                  <input id="valuation-date-year" class="date-part date-year" data-date-part="year" inputmode="numeric" maxlength="4" aria-label="估值日期 年" />
+                  <span aria-hidden="true">/</span>
+                  <input class="date-part" data-date-part="month" inputmode="numeric" maxlength="2" aria-label="估值日期 月" />
+                  <span aria-hidden="true">/</span>
+                  <input class="date-part" data-date-part="day" inputmode="numeric" maxlength="2" aria-label="估值日期 日" />
+                  <button class="date-picker-button" type="button" data-open-date="valuation-date" aria-label="打开估值日期日历"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></svg></button>
+                  <input class="date-picker-proxy" data-picker-for="valuation-date" type="date" tabindex="-1" aria-hidden="true" />
+                </div>
+                <p class="field-hint">支持粘贴 2026.6.1 或 26.12.12</p>
+              </div>
+            </div>
+
+            <p class="form-error" id="form-error" role="alert" hidden></p>
+          </form>
+
+          <aside class="result-card" aria-labelledby="result-title" aria-live="polite">
+            <div class="result-topline">
+              <span id="result-title">当前剩余价值</span>
+              <span class="result-status" id="result-status"><span aria-hidden="true"></span>服务中</span>
+            </div>
+            <div class="result-value">
+              <span>¥</span><strong id="result-value">0.00</strong>
+              <small>CNY</small>
+            </div>
+            <p class="original-value" id="original-value">原币价值 ¥0.00 CNY</p>
+
+            <div class="progress-area">
+              <div class="progress-label">
+                <span>本周期已使用</span>
+                <strong id="progress-percent">0%</strong>
+              </div>
+              <div class="progress-track" role="progressbar" aria-label="账单周期使用进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <span id="progress-bar"></span>
+              </div>
+              <div class="progress-dates">
+                <span id="period-start">—</span>
+                <span id="period-end">—</span>
+              </div>
+            </div>
+
+            <dl class="result-metrics">
+              <div><dt>剩余天数</dt><dd id="remaining-days">—</dd></div>
+              <div><dt>周期天数</dt><dd id="total-days">—</dd></div>
+              <div><dt>日均成本</dt><dd id="daily-cost">—</dd></div>
+            </dl>
+
+            <div class="result-actions">
+              <button class="copy-button" id="copy-result" type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>
+                <span>复制结果</span>
+              </button>
+              <button class="share-button" id="share-result" type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4" /></svg>
+                <span>图片直链</span>
+              </button>
+            </div>
+            <p class="result-note">结果按自然日比例估算，不直接把月份视为 30 天。</p>
+          </aside>
+        </section>
+
+        <section class="smart-import" id="smart-import" aria-labelledby="smart-title">
+          <div class="smart-intro">
+            <span class="section-kicker">02 · 智能录入</span>
+            <h2 id="smart-title">把账单丢进来，<br />少填五个框。</h2>
+            <p>本地规则会先完成基础识别；配置标准 AI 接口后，可进一步理解格式混乱的订单、聊天记录和自然语言。</p>
+            <div class="smart-intro-actions">
+              <button class="sample-button" id="load-sample" type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4 19.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13.5M8 8h8M8 12h8M8 16h5M2 20h20" /></svg>
+                载入示例
+              </button>
+
+            </div>
+          </div>
+
+          <div class="analysis-card">
+            <div class="analysis-mode">
+              <span class="analysis-mode-dot" id="ai-mode-dot" aria-hidden="true"></span>
+              <div><strong id="ai-mode-label">本地智能解析</strong><span id="ai-mode-detail">无需配置，文字不会上传</span></div>
+            </div>
+            <label for="billing-text">账单或订单文字</label>
+            <textarea id="billing-text" rows="9" placeholder="例如：&#10;注册日期 2026/05/05&#10;续约价格 ￥299.00 CNY&#10;账单周期 每年&#10;下次付款日期 2027/05/05"></textarea>
+            <div class="analysis-actions">
+              <span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 快速解析</span>
+              <button class="analyze-button" id="analyze-text" type="button">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m12 3 1.3 4.2a5 5 0 0 0 3.4 3.4L21 12l-4.3 1.4a5 5 0 0 0-3.4 3.4L12 21l-1.3-4.2a5 5 0 0 0-3.4-3.4L3 12l4.3-1.4a5 5 0 0 0 3.4-3.4L12 3Z" /></svg>
+                <span>智能分析</span>
+              </button>
+            </div>
+
+            <div class="analysis-result" id="analysis-result" hidden>
+              <div class="analysis-result-head">
+                <span class="analysis-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m6 12 4 4 8-8" /></svg></span>
+                <div><strong>识别完成</strong><span id="analysis-confidence">—</span><span id="analysis-source">本地解析</span></div>
+              </div>
+              <p id="analysis-summary"></p>
+              <div class="field-chips" id="analysis-fields"></div>
+              <button class="apply-button" id="apply-analysis" type="button">填入上方计算器</button>
+            </div>
+            <p class="analysis-error" id="analysis-error" role="alert" hidden></p>
+          </div>
+        </section>
+
+        <section class="method-strip" aria-label="计算方式说明">
+          <div>
+            <span class="method-number">365≠360</span>
+            <p><strong>真实日历周期</strong><br />逐日计算大小月和闰年</p>
+          </div>
+          <div>
+            <span class="method-number" id="rate-date-display">每日</span>
+            <p><strong>服务器汇率 API</strong><br />每日获取，仅由后端缓存与换算</p>
+          </div>
+          <div>
+            <span class="method-number">可控</span>
+            <p><strong>数据流向</strong><br />本地优先，AI 仅按你的接口配置发送</p>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <a class="brand brand-small" href="#top">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="7" rx="2" /><rect x="4" y="13.5" width="16" height="7" rx="2" /><path d="M8 7h.01M8 17h.01M12 7h4M12 17h4" /></svg></span>
+          <span>VPS <strong>Value</strong></span>
+        </a>
+        <p>估值是参考，不是魔法。交易前请再次核对账单。</p>
+        <a href="https://frankfurter.dev/" target="_blank" rel="noreferrer">汇率数据说明</a>
+      </footer>
+    </div>
+
+
+    <div class="modal-backdrop" id="share-modal" hidden>
+      <section class="modal-panel share-panel" role="dialog" aria-modal="true" aria-labelledby="share-title">
+        <div class="modal-heading">
+          <div><span class="section-kicker">图片分享</span><h2 id="share-title">Markdown 直链</h2></div>
+          <button class="modal-close" type="button" data-close-modal="share-modal" aria-label="关闭图片分享"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
+        </div>
+        <p class="modal-lead">图片已保存到项目的 <code>storage/shares/</code>。部署后可直接粘贴到论坛、文档或聊天中。</p>
+        <div class="share-preview-wrap"><img id="share-image-preview" alt="VPS 剩余价值分享图预览" /></div>
+        <div class="modal-field">
+          <label for="share-direct-url">图片直链</label>
+          <div class="copy-field"><input id="share-direct-url" type="url" readonly /><button type="button" data-copy-field="share-direct-url">复制</button></div>
+        </div>
+        <div class="modal-field">
+          <label for="share-markdown">Markdown</label>
+          <div class="copy-field"><input id="share-markdown" type="text" readonly /><button type="button" data-copy-field="share-markdown">复制</button></div>
+        </div>
+        <p class="modal-status" id="share-status" role="alert" hidden></p>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
