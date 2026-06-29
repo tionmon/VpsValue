@@ -37,6 +37,22 @@ test("accounts for leap-year billing periods", () => {
   assert.equal(result.dailyCostCny, 1);
 });
 
+test("supports remaining terms longer than 365 days", () => {
+  const result = calculateServerValue({
+    renewalPrice: 95,
+    cycle: "triennial",
+    nextPayment: "2029-04-22",
+    valuationDate: "2026-04-22",
+    rateToCny: 7,
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.status, "active");
+  assert.equal(result.totalDays, 1096);
+  assert.equal(result.remainingDays, 1096);
+  assert.equal(result.originalValue, 95);
+  assert.equal(result.cnyValue, 665);
+});
+
 test("preserves end-of-month billing semantics", () => {
   const previous = shiftMonths(parseISODate("2026-02-28"), -1);
   assert.equal(previous.toISOString().slice(0, 10), "2026-01-31");
@@ -80,6 +96,21 @@ test("recognizes Chinese currency names", () => {
   assert.equal(detectCurrency("每年 20 欧元"), "EUR");
   assert.equal(detectCurrency("价格 15 英镑"), "GBP");
   assert.equal(detectCurrency("299 人民币"), "CNY");
+  assert.equal(detectCurrency("续费 25 加元"), "CAD");
+  assert.equal(detectCurrency("三年付95刀"), "USD");
+});
+
+test("parses an inline three-year billing description", () => {
+  const result = analyzeBillingText("2029-04-22到期 三年付95刀");
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.fields, {
+    registrationDate: "",
+    renewalPrice: 95,
+    currency: "USD",
+    cycle: "triennial",
+    nextPayment: "2029-04-22",
+    paymentMethod: "",
+  });
 });
 
 test("parses Chinese currency names from billing text", () => {
@@ -105,4 +136,16 @@ test("normalizes strict AI output", () => {
   assert.equal(result.fields.cycle, "annual");
   assert.equal(result.fields.nextPayment, "2027-06-01");
   assert.equal(result.confidence, 93);
+});
+
+test("normalizes CAD and triennial AI output", () => {
+  const result = normalizeAiAnalysis({
+    renewalPrice: 120,
+    currency: "CAD",
+    cycle: "triennial",
+    nextPayment: "2029-04-22",
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.fields.currency, "CAD");
+  assert.equal(result.fields.cycle, "triennial");
 });

@@ -6,6 +6,7 @@ export const CYCLES = {
   semiannual: { label: "每半年", months: 6 },
   annual: { label: "每年", months: 12 },
   biennial: { label: "每两年", months: 24 },
+  triennial: { label: "每三年", months: 36 },
 };
 
 export function parseISODate(value) {
@@ -134,7 +135,7 @@ export function parseFlexibleDate(value) {
 
 export function detectCurrency(value) {
   const source = String(value || "");
-  const code = source.match(/\b(CNY|RMB|USD|EUR|GBP|HKD|JPY)\b/i)?.[1]?.toUpperCase();
+  const code = source.match(/\b(CNY|RMB|USD|EUR|GBP|HKD|JPY|CAD)\b/i)?.[1]?.toUpperCase();
   if (code === "RMB") return "CNY";
   if (code) return code;
   if (/人民币|人民币元|元人民币|中(?:国)?元|[￥¥]/i.test(source)) return "CNY";
@@ -143,11 +144,14 @@ export function detectCurrency(value) {
   if (/英镑|£|\bpounds?\b/i.test(source)) return "GBP";
   if (/港币|港元/i.test(source)) return "HKD";
   if (/日元|日币/i.test(source)) return "JPY";
+  if (/加拿大(?:元|币)|加元|加币|\bCanadian\s*dollars?\b/i.test(source)) return "CAD";
+  if (/\d[\d,.]*\s*(?:美)?刀/i.test(source)) return "USD";
   return "";
 }
 
 export function detectCycle(value) {
   const normalized = value.toLowerCase();
+  if (/每三年|三年(?:付)?|3\s*年(?:付)?|triennial|every\s*3\s*years?/.test(normalized)) return "triennial";
   if (/每两年|两年|2\s*年|biennial|every\s*2\s*years?/.test(normalized)) return "biennial";
   if (/每半年|半年|6\s*个月|semi[\s-]?annual|half[\s-]?year/.test(normalized)) return "semiannual";
   if (/每季度|季度|3\s*个月|quarterly|quarter/.test(normalized)) return "quarterly";
@@ -167,7 +171,7 @@ export function analyzeBillingText(text) {
   const cycleRaw = valueAfterLabel(lines, [/账单周期/i, /付款周期/i, /billing\s*(?:cycle|period)/i]);
   const paymentMethod = valueAfterLabel(lines, [/付款方式/i, /支付方式/i, /payment\s*method/i]);
 
-  const currencyWords = "CNY|RMB|USD|EUR|GBP|HKD|JPY|人民币(?:元)?|美元|美金|美刀|欧元|英镑|港币|港元|日元|日币";
+  const currencyWords = "CNY|RMB|USD|EUR|GBP|HKD|JPY|CAD|人民币(?:元)?|美元|美金|美刀|刀|欧元|英镑|港币|港元|日元|日币|加拿大(?:元|币)|加元|加币";
   const broadPrice = cleanText.match(new RegExp(`(?:[￥¥$€£]|${currencyWords})\\s*([\\d,]+(?:\\.\\d{1,2})?)`, "i"))
     || cleanText.match(new RegExp(`([\\d,]+(?:\\.\\d{1,2})?)\\s*(?:${currencyWords})`, "i"));
   const priceSource = priceRaw || broadPrice?.[0] || "";
@@ -175,7 +179,8 @@ export function analyzeBillingText(text) {
   const renewalPrice = amountMatch ? Number(amountMatch[1].replace(/,/g, "")) : null;
   const currency = detectCurrency(priceSource || cleanText) || "CNY";
   const registrationDate = parseFlexibleDate(registrationRaw);
-  const nextPayment = parseFlexibleDate(nextPaymentRaw);
+  const inlineExpiryRaw = cleanText.match(/((?:20\d{2}|\d{2})\s*[\/\-.年]\s*\d{1,2}\s*[\/\-.月]\s*\d{1,2}\s*日?)\s*(?:到期|过期|截止)/i)?.[1] || "";
+  const nextPayment = parseFlexibleDate(nextPaymentRaw) || parseFlexibleDate(inlineExpiryRaw);
   const cycle = detectCycle(cycleRaw || cleanText);
 
   const extracted = {

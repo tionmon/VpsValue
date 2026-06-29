@@ -220,11 +220,11 @@ async function readRatesCache() {
 
 async function loadServerRates() {
   const cached = await readRatesCache();
-  if (cached?.cachedOn === localDateKey() && cached?.rates?.USD) {
+  if (cached?.cachedOn === localDateKey() && cached?.rates?.USD && cached?.rates?.CAD) {
     return { ...cached, stale: false, source: "Frankfurter" };
   }
   try {
-    const response = await fetch("https://api.frankfurter.dev/v1/latest?base=CNY&symbols=USD,EUR,GBP,HKD,JPY", {
+    const response = await fetch("https://api.frankfurter.dev/v1/latest?base=CNY&symbols=USD,EUR,GBP,HKD,JPY,CAD", {
       headers: { Accept: "application/json" },
       signal: typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(15_000) : undefined,
     });
@@ -240,7 +240,7 @@ async function loadServerRates() {
     await writeFile(ratesCachePath, `${JSON.stringify(record, null, 2)}\n`, "utf8");
     return { ...record, stale: false, source: "Frankfurter" };
   } catch (error) {
-    if (cached?.rates?.USD) return { ...cached, stale: true, source: "Frankfurter", warning: error.message };
+    if (cached?.rates?.USD && cached?.rates?.CAD) return { ...cached, stale: true, source: "Frankfurter", warning: error.message };
     throw new Error(`服务器无法取得参考汇率：${error.message}`);
   }
 }

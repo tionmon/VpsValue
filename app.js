@@ -42,8 +42,8 @@ const totalDaysEl = $("#total-days");
 const dailyCost = $("#daily-cost");
 
 const API_ROOT = location.protocol === "file:" ? "http://127.0.0.1:4173" : "";
-const symbols = { CNY: "¥", USD: "$", EUR: "€", GBP: "£", HKD: "HK$", JPY: "¥" };
-const rateNames = { CNY: "人民币", USD: "美元", EUR: "欧元", GBP: "英镑", HKD: "港币", JPY: "日元" };
+const symbols = { CNY: "¥", USD: "$", EUR: "€", GBP: "£", HKD: "HK$", JPY: "¥", CAD: "C$" };
+const rateNames = { CNY: "人民币", USD: "美元", EUR: "欧元", GBP: "英镑", HKD: "港币", JPY: "日元", CAD: "加拿大元" };
 const sampleText = `注册日期
 2026/05/05
 续约价格
